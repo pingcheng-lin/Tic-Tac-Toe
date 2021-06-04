@@ -14,7 +14,7 @@ class Server{
 
         while(true) {
             Socket connection = serverSocket.accept(); //establish connection and waits for the client
-            System.out.println("Success Connect");
+            System.out.println("A Connection Success");
             WaitingRoom wr = new WaitingRoom(connection);
             Thread th = new Thread(wr);
             th.start();
@@ -41,33 +41,30 @@ class WaitingRoom implements Runnable {
         try {
             input = new DataInputStream(connection.getInputStream());  
             output = new DataOutputStream(connection.getOutputStream());
-            
+
             System.out.println("Wait player name...");
             String name = input.readUTF();
-            System.out.println("Player name: " + name);
-            Server.players.addElement(name);
+            System.out.println("Player name: " + name + "login");
+            Server.players.add(name);
 
-            String command = input.readUTF();
-            System.out.println(command);
-            String[] subcommand = command.split("\\s");
-            System.out.println(command);
-            if(subcommand[0].equals("update")) {
-                System.out.println(command);
-                StringBuilder update = new StringBuilder();
-                update.append("update");
-                Server.players.forEach((n) -> update.append(" " + n));
-                output.writeUTF(update.toString());
-                output.flush();
-                System.out.println(update.toString());
-            }
-
-
-
-
-            input.close();
-            output.close();
-            connection.close(); 
-
+            while(true) {
+                String command = input.readUTF();
+                String[] subcommand = command.split("\\s");
+                if(subcommand[0].equals("update")) {
+                    System.out.println(name + " update list");
+                    StringBuilder update = new StringBuilder();
+                    update.append("update");
+                    Server.players.forEach((n) -> update.append(" " + n));
+                    output.writeUTF(update.toString());
+                    output.flush();
+                    System.out.println(update.toString());
+                }
+                else if(subcommand[0].equals("leave")) {
+                    input.close();
+                    output.close();
+                    connection.close();
+                }
+            } 
         } catch(Exception e) {
             System.out.println(e);
         }

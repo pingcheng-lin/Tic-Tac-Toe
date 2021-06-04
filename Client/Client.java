@@ -7,11 +7,11 @@ public class Client{
     public static void main(String args[]) throws Exception{
 
         Socket socketClient = new Socket("localhost",1234); //create a client socket  
-        
+        input = new DataInputStream(socketClient.getInputStream());  
+        output = new DataOutputStream(socketClient.getOutputStream());  
+
         Launch frame = new Launch(); //create a frame
 
-        input=new DataInputStream(socketClient.getInputStream());  
-        output=new DataOutputStream(socketClient.getOutputStream());  
         //BufferedReader buf=new BufferedReader(new InputStreamReader(System.in));  
         
         //String str = "", str2 = "";  

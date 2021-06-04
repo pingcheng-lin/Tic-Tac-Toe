@@ -9,13 +9,15 @@ import java.awt.image.BufferedImage;
 import javax.imageio.*;
 import java.awt.GridLayout;
 
-public class PlayGround extends JFrame implements MouseListener {
+public class PlayGround extends Client implements MouseListener {
+    JFrame frame = new JFrame();
     JLabel label[] = new JLabel[9];
     ImageIcon check = new ImageIcon("./img/check.png");;
     ImageIcon cross = new ImageIcon("./img/cross.png");;
     ImageIcon square = new ImageIcon("./img/square.png");;
     ImageIcon image = new ImageIcon("./img/tic-tac-toe.png");
-    
+    String type;
+    boolean win = true;
     PlayGround() throws Exception{
 
         myResize(check, "./img/check.png");
@@ -30,26 +32,46 @@ public class PlayGround extends JFrame implements MouseListener {
 
         
         for(int i = 0; i < 9; i++)
-            this.add(label[i]);
+            frame.add(label[i]);
 
-        //this.setResizable(false);
-        this.setTitle("Playing");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //this.setSize(350, 350);
-        this.setLayout(new GridLayout(3, 3, 5, 5));
+        //frame.setResizable(false);
+        frame.setTitle("Playing");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        //frame.setSize(350, 350);
+        frame.setLayout(new GridLayout(3, 3, 5, 5));
 
-        this.pack();
-        this.setVisible(true);
-        this.setLocationRelativeTo(null);
-        this.setIconImage(image.getImage());
-        this.getContentPane().setBackground(new Color(255, 255, 204));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setLocationRelativeTo(null);
+        frame.setIconImage(image.getImage());
+        frame.getContentPane().setBackground(new Color(255, 255, 204));
+
+        String priority = input.readUTF();
+        type = input.readUTF();
+        if(priority.equals("second"))
+            for(int i = 0; i < 9; i++)
+                label[i].setEnabled(false);
+        while(true) {
+            int beChanged = Integer.parseInt(input.readUTF());
+        }
     } 
 
     public void mouseClicked(MouseEvent e) {
-        for(int i = 0; i < 9; i++)
-            if(e.getSource() == label[i]) {
-                label[i].setIcon(check);
-            }
+        try {
+            for(int i = 0; i < 9; i++)
+                if(e.getSource() == label[i]) {
+                    label[i].setIcon(check);
+                    output.writeUTF(Integer.toString(i));
+                    output.flush();
+                }
+            String which = input.readUTF();
+            if(type.equals("check"))
+                label[Integer.parseInt(which)].setIcon(check);
+            else
+                label[Integer.parseInt(which)].setIcon(cross);
+            for(int i = 0; i < 9; i++)
+                label[i].setEnabled(false);
+        } catch(Exception err) {}
     }
 
     public void mousePressed(MouseEvent e){}
