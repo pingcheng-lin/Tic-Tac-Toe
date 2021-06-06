@@ -3,10 +3,13 @@ import java.util.Vector;
 import java.io.*;  
 import java.lang.String;
 import java.lang.StringBuilder;
+import java.util.Map;
+import java.util.HashMap;
+
 class Server{
 
     static Vector<String> players = new Vector<String>();
-
+    static Map<String, String> playerMap = new HashMap<>();
     public static void main(String args[])throws Exception {
         
         ServerSocket serverSocket = new ServerSocket(1234); //create a server socket
@@ -19,8 +22,6 @@ class Server{
             Thread th = new Thread(wr);
             th.start();
         }
-        
-        
 
         //serverSocket.close();
     }
@@ -48,17 +49,32 @@ class WaitingRoom implements Runnable {
             Server.players.add(name);
 
             while(true) {
+
                 String command = input.readUTF();
                 String[] subcommand = command.split("\\s");
+
                 if(subcommand[0].equals("update")) {
                     System.out.println(name + " update list");
                     StringBuilder update = new StringBuilder();
                     update.append("update");
-                    Server.players.forEach((n) -> update.append(" " + n));
+                    //Server.players.forEach((n) -> update.append(" " + n));
+                    for(String i: Server.players) {
+                        if(!i.equals(name))
+                            update.append(" " + i);
+                    }
                     output.writeUTF(update.toString());
                     output.flush();
                     System.out.println(update.toString());
                 }
+
+                else if(subcommand[0].equals("play")) {
+                    Server.playerMap.put(name, subcommand[1]);
+                    System.out.println("123");
+                    while(!Server.playerMap.containsKey(subcommand[1]) || !Server.playerMap.get(subcommand[1]).equals(name));
+                    output.writeUTF("check");
+                    output.flush();
+                }
+
                 else if(subcommand[0].equals("leave")) {
                     input.close();
                     output.close();
@@ -71,4 +87,3 @@ class WaitingRoom implements Runnable {
     }
 
 }
-

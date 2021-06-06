@@ -16,8 +16,8 @@ public class Launch extends Client implements ActionListener {
     JButton updateButton;
     JButton playButton;
     Vector<JRadioButton> player = new Vector<JRadioButton>();
+    ButtonGroup group = new ButtonGroup(); 
     ImageIcon image = new ImageIcon("./img/tic-tac-toe.png");
-    
     Launch() throws Exception{
 
         textField = new JTextField();
@@ -37,6 +37,7 @@ public class Launch extends Client implements ActionListener {
         playButton = new JButton("Play");
         playButton.addActionListener(this);
 
+
         playButton.setEnabled(false);
         updateButton.setEnabled(false);
         frame.add(textField);
@@ -51,8 +52,6 @@ public class Launch extends Client implements ActionListener {
         frame.setVisible(true);//make frame visible
         frame.setIconImage(image.getImage());
         frame.getContentPane().setBackground(new Color(255, 255, 204));
-
-    
     } 
 
 
@@ -75,6 +74,7 @@ public class Launch extends Client implements ActionListener {
                 System.out.println(command);
                 for(int i = 1; i < names.length; i++) {
                     player.add(new JRadioButton(names[i]));
+                    group.add(player.get(i-1));
                     frame.add(player.get(i-1));
                 }
                 frame.revalidate();
@@ -92,14 +92,26 @@ public class Launch extends Client implements ActionListener {
                 
                 for(int i = 1; i < names.length; i++) {
                     player.add(new JRadioButton(names[i]));
+                    group.add(player.get(i-1));
                     frame.add(player.get(i-1));
                 }
                 frame.revalidate();
             }
             else if(e.getSource() == playButton) {
-                output.writeUTF("play");
-                output.flush();
-
+                for(JRadioButton i: player) {
+                    if(i.isSelected()) {
+                        updateButton.setEnabled(false);
+                        playButton.setEnabled(false);
+                        for(JRadioButton j: player)
+                            j.setEnabled(false);
+                        output.writeUTF("play " + i.getText());
+                        output.flush();
+                        String waitOpponent = input.readUTF();
+                        PlayGround start = new PlayGround();
+                        System.out.println("123");
+                    }
+                }
+                
             }
         } catch(Exception err) {}
     }
