@@ -20,12 +20,9 @@ public class PlayGround extends Client implements MouseListener {
     ImageIcon loseIcon = new ImageIcon("./img/game-over.png");
     ImageIcon myType;
     ImageIcon enemyType;
-    String check_or_cross;
     boolean win = false;
     boolean first = true;
     PlayGround() throws Exception{
-
-        //check_or_cross = input.readUTF();
 
         //set all square
         myResize(check, "./img/check.png");
@@ -39,10 +36,6 @@ public class PlayGround extends Client implements MouseListener {
             label[i].addMouseListener(this);
             label[i].setIcon(square);
         }
-
-        //set particular check if I am player of cross
-        
-
 
         for(int i = 0; i < 9; i++)
             frame.add(label[i]);
@@ -61,14 +54,20 @@ public class PlayGround extends Client implements MouseListener {
 
     public void mouseClicked(MouseEvent e) {
         try {
+            System.out.println("click");
             //my turn
+            for(JLabel i: label)
+                if(e.getSource() == i && i.isEnabled())
+                    return;
+            output.writeUTF("click");
+            output.flush();
             for(int i = 0; i < 9; i++) {
                 if(e.getSource() == label[i]) {
-                    label[i].setIcon(myType);
+                    label[i].setIcon(check);
+                    frame.revalidate();
                     output.writeInt(i);
                     output.flush();
                 }
-                frame.revalidate();
                 label[i].setEnabled(false);
             }
 
@@ -77,48 +76,67 @@ public class PlayGround extends Client implements MouseListener {
             if(winOrNot.equals("win")) {
                 for(JLabel i: label)
                     i.setIcon(winIcon);
+                
+                frame.revalidate();
+                return;
             }
             else if(winOrNot.equals("lose")) {
                 for(JLabel i: label)
                     i.setIcon(loseIcon);
+                frame.revalidate();
+                return;
             }
-            frame.revalidate();
 
+            System.out.println("11");
             //enemy turn
             int which = input.readInt();
-            label[which].setIcon(enemyType);
 
+            System.out.println("33");
+            label[which].setIcon(enemyType);
+            System.out.println("22");
             //win or not
-            if(winOrNot.equals("win")) {
+            /*if(winOrNot.equals("win")) {
                 for(JLabel i: label)
                     i.setIcon(winIcon);
+                frame.revalidate();
+                return;
             }
             else if(winOrNot.equals("lose")) {
                 for(JLabel i: label)
                     i.setIcon(loseIcon);
+                frame.revalidate();
+                return;
             }
             else
                 for(JLabel i: label)
-                    i.setEnabled(true);
-            frame.revalidate();
+                    i.setEnabled(true);*/
         } catch(Exception err) {}
     }
 
 
     public void mouseEntered(MouseEvent e){
         try {
-            if(first && check_or_cross.equals("cross")) {
+            if(first && Client.check_or_cross.equals("cross")) {
+                output.writeUTF("first");
+                output.flush();
                 myType = cross;
                 enemyType = check;
                 for(JLabel i: label)
                     i.setEnabled(false);
+                System.out.println("11");
                 int num = input.readInt();
+
+                System.out.println("22");
                 label[num].setIcon(enemyType);
+                frame.revalidate();
                 first = false;
+                System.out.println("first");
             }
-            else {
+            else if(first) {
                 myType = check;
                 enemyType = cross;
+                System.out.println("second");
+                first = false;
             }
         } catch(Exception err) {}
     }

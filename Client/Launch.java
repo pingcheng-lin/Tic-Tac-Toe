@@ -88,7 +88,6 @@ public class Launch extends Client implements ActionListener {
                     frame.remove(player.get(i));
                 }
                 player.clear();
-                System.out.println(player.size());
                 
                 for(int i = 1; i < names.length; i++) {
                     player.add(new JRadioButton(names[i]));
@@ -106,12 +105,11 @@ public class Launch extends Client implements ActionListener {
                             j.setEnabled(false);
                         output.writeUTF("play " + i.getText());
                         output.flush();
-                        String waitOpponent = input.readUTF();
+                        Client.check_or_cross = input.readUTF(); //wait opponent and take check or cross
                         PlayGround start = new PlayGround();
                         System.out.println("123");
                     }
                 }
-                
             }
         } catch(Exception err) {}
     }
