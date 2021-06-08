@@ -12,11 +12,9 @@ java Server
 ```
 
 ## Function
-```
 - Able to let multiple users to play.
 - Can show a player frequency of win and lose. (win/lose)
 - Give player a random opponent.
-```
 
 ## Idea
 - Server
