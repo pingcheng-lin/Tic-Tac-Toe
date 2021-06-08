@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.Image.*;
@@ -18,10 +19,15 @@ public class PlayGround extends Client implements MouseListener {
     ImageIcon image = new ImageIcon("./img/tic-tac-toe.png");
     ImageIcon winIcon = new ImageIcon("./img/winner.png");
     ImageIcon loseIcon = new ImageIcon("./img/game-over.png");
-    ImageIcon myType;
-    ImageIcon enemyType;
-    boolean win = false;
-    boolean first = true;
+    ImageIcon drawIcon = new ImageIcon("./img/draw.png");
+    ImageIcon myType; //the image when i click
+    ImageIcon enemyType; //the image when enemy click
+    String winOrNot = "none"; //anyone win, lose, draw
+    int myChangeWhich = -1; //which label i choose to click
+    int enemyChangeWhich = -1; //which label enemy choose to click
+    boolean first = true; //for player who use cross, the player cannot click any label
+    boolean first2 = true; //for player who use cross, the player should wait another player check first
+    boolean open = false; //wait to let press process done
     PlayGround() throws Exception{
 
         //set all square
@@ -30,6 +36,7 @@ public class PlayGround extends Client implements MouseListener {
         myResize(square, "./img/square.png");
         myResize(winIcon, "./img/winner.png");
         myResize(loseIcon, "./img/game-over.png");
+        myResize(drawIcon, "./img/draw.png");
         for(int i = 0; i < 9; i++) {
             label[i] = new JLabel();
             label[i].setSize(100,100);
@@ -39,111 +46,144 @@ public class PlayGround extends Client implements MouseListener {
 
         for(int i = 0; i < 9; i++)
             frame.add(label[i]);
+        frame.addMouseListener(this);
         frame.setTitle("Playing");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLayout(new GridLayout(3, 3));
-        //frame.pack();
         frame.setSize(350,350);
         frame.setVisible(true);
         frame.setLocationRelativeTo(null);
         frame.setIconImage(image.getImage());
         frame.getContentPane().setBackground(new Color(255, 255, 204));
-
-        
     } 
 
-    public void mouseClicked(MouseEvent e) {
-        try {
-            System.out.println("click");
-            //my turn
+    public void gogo(){ //to change all label depending on situation
+        if(myChangeWhich != -1) {
+            System.out.println("my");
+            label[myChangeWhich].setIcon(myType);
+            myChangeWhich = -1;
+        }
+        else if(enemyChangeWhich != -1) {
+            System.out.println("enemy");
+            label[enemyChangeWhich].setIcon(enemyType);
+            enemyChangeWhich = -1;
+        }
+        else if(winOrNot.equals("win")) {
             for(JLabel i: label)
-                if(e.getSource() == i && i.isEnabled())
+                i.setIcon(winIcon);
+        }
+        else if(winOrNot.equals("lose")) {
+            for(JLabel i: label)
+                i.setIcon(loseIcon);
+        }
+        else if(winOrNot.equals("draw")) {
+            for(JLabel i: label)
+                i.setIcon(drawIcon);
+        }
+        frame.revalidate();
+    }
+    
+    public void mouseEntered(MouseEvent e){ //the first thing for all player to do
+        try {
+            if(first2 && Client.check_or_cross.equals("cross")) { //for cross player to disable all label first
+                first2 = false;
+                for(JLabel i: label)
+                    i.setEnabled(false);
+                frame.revalidate();
+                System.out.println("cross");
+            }
+            else if(first && Client.check_or_cross.equals("cross")) { //for cross player to get check player choice
+                first = false;
+                myType = cross;
+                enemyType = check;
+                output.writeUTF("first");
+                output.flush();
+                
+                frame.revalidate();
+                enemyChangeWhich = input.readInt();
+                gogo();
+                for(JLabel i: label)
+                    i.setEnabled(true);
+                frame.revalidate();
+            }
+            else if(first && e.getSource() != frame) { //for check player
+                first = false;
+                myType = check;
+                enemyType = cross;
+                System.out.println("check");
+            }
+        } catch(Exception err) {}
+    }
+
+    public void mousePressed(MouseEvent e){
+        try {
+            //my turn
+            for(JLabel i: label) //avoid disabled label
+                if((e.getSource() == i && !i.isEnabled()) || first)
                     return;
+            for(JLabel i: label) //avoid label already be chosen before
+                if(e.getSource() == i && (i.getIcon().equals(check) || i.getIcon().equals(cross)))
+                    return;
+            if(winOrNot.equals("win") || winOrNot.equals("lose") || winOrNot.equals("draw")) //terminate when game finish
+                return;
+
+            //tell server i click a label
+            System.out.println("Click!!");
+            open = false;
             output.writeUTF("click");
             output.flush();
-            for(int i = 0; i < 9; i++) {
+
+            //change label and tell server
+            for(int i = 0; i < 9; i++) { 
                 if(e.getSource() == label[i]) {
-                    label[i].setIcon(check);
-                    frame.revalidate();
+                    myChangeWhich = i;
                     output.writeInt(i);
                     output.flush();
                 }
                 label[i].setEnabled(false);
             }
+            gogo();
 
-            //win or not
-            String winOrNot = input.readUTF();
-            if(winOrNot.equals("win")) {
-                for(JLabel i: label)
-                    i.setIcon(winIcon);
-                
-                frame.revalidate();
+            //read win or not
+            winOrNot = input.readUTF();
+            System.out.println(winOrNot);
+            gogo();
+            if(winOrNot.equals("win") || winOrNot.equals("lose") || winOrNot.equals("draw"))
                 return;
-            }
-            else if(winOrNot.equals("lose")) {
-                for(JLabel i: label)
-                    i.setIcon(loseIcon);
-                frame.revalidate();
-                return;
-            }
-
-            System.out.println("11");
-            //enemy turn
-            int which = input.readInt();
-
-            System.out.println("33");
-            label[which].setIcon(enemyType);
-            System.out.println("22");
-            //win or not
-            /*if(winOrNot.equals("win")) {
-                for(JLabel i: label)
-                    i.setIcon(winIcon);
-                frame.revalidate();
-                return;
-            }
-            else if(winOrNot.equals("lose")) {
-                for(JLabel i: label)
-                    i.setIcon(loseIcon);
-                frame.revalidate();
-                return;
-            }
-            else
-                for(JLabel i: label)
-                    i.setEnabled(true);*/
+            open = true; //release can start
         } catch(Exception err) {}
     }
 
-
-    public void mouseEntered(MouseEvent e){
-        try {
-            if(first && Client.check_or_cross.equals("cross")) {
-                output.writeUTF("first");
-                output.flush();
-                myType = cross;
-                enemyType = check;
-                for(JLabel i: label)
-                    i.setEnabled(false);
-                System.out.println("11");
-                int num = input.readInt();
-
-                System.out.println("22");
-                label[num].setIcon(enemyType);
-                frame.revalidate();
-                first = false;
-                System.out.println("first");
+    public void mouseReleased(MouseEvent e){
+        try{
+            int count = 0;
+            while(!open) { //wait a moment
+                if(count++ == 10000)
+                    break;
             }
-            else if(first) {
-                myType = check;
-                enemyType = cross;
-                System.out.println("second");
-                first = false;
-            }
+            open = true;
+            System.out.println("Release!!");
+
+            //enemy turn, read enemy choice from server
+            enemyChangeWhich = input.readInt();
+            gogo();
+
+            //read win or not
+            winOrNot = input.readUTF();
+            System.out.println(winOrNot);
+            gogo();
+            if(winOrNot.equals("win") || winOrNot.equals("lose") || winOrNot.equals("draw"))
+                return;
+            
+            //my term all label can be used
+            for(JLabel i: label)
+                i.setEnabled(true);
         } catch(Exception err) {}
     }
-    public void mouseExited(MouseEvent e){}
-    public void mouseReleased(MouseEvent e){}
-    public void mousePressed(MouseEvent e){}
     
+
+    public void mouseExited(MouseEvent e){}
+    public void mouseClicked(MouseEvent e) {}
     void myResize(ImageIcon icon, String img) throws IOException{
         //resize and update icon
         BufferedImage temp = null;

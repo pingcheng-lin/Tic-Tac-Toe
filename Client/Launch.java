@@ -19,7 +19,7 @@ public class Launch extends Client implements ActionListener {
     ButtonGroup group = new ButtonGroup(); 
     ImageIcon image = new ImageIcon("./img/tic-tac-toe.png");
     Launch() throws Exception{
-
+        //text
         textField = new JTextField();
         textField.setPreferredSize(new Dimension(250,40));
         textField.setFont(new Font("Arial", Font.BOLD, 35));
@@ -28,28 +28,33 @@ public class Launch extends Client implements ActionListener {
         textField.setCaretColor(Color.GRAY);
         textField.setText("Default");
 
+        //submit
         submitButton = new JButton("Submit my name");
         submitButton.addActionListener(this);
 
+        //update
         updateButton = new JButton("Update List");
         updateButton.addActionListener(this);
 
+        //play
         playButton = new JButton("Play");
         playButton.addActionListener(this);
 
-
+        //disable two buttons for latter use
         playButton.setEnabled(false);
         updateButton.setEnabled(false);
+
+        //build the frame
         frame.add(textField);
         frame.add(submitButton);
         frame.add(updateButton);
         frame.add(playButton);
         frame.setTitle("Tic-Tac-Toe");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500,500);
+        frame.setSize(500,300);
         frame.setLayout(new FlowLayout());
         frame.setLocationRelativeTo(null);
-        frame.setVisible(true);//make frame visible
+        frame.setVisible(true); //make frame visible
         frame.setIconImage(image.getImage());
         frame.getContentPane().setBackground(new Color(255, 255, 204));
     } 
@@ -62,55 +67,61 @@ public class Launch extends Client implements ActionListener {
                 System.out.println(textField.getText());
                 output.writeUTF(textField.getText());
                 output.flush();
+                //disable used items
                 submitButton.setEnabled(false);
                 textField.setEditable(false);
+                //enable want to use items
                 updateButton.setEnabled(true);
                 playButton.setEnabled(true);
                 //update list
-                output.writeUTF("update");
-                output.flush();
-                String command = input.readUTF();
-                String[] names = command.split("\\s");
-                System.out.println(command);
-                for(int i = 1; i < names.length; i++) {
-                    player.add(new JRadioButton(names[i]));
-                    group.add(player.get(i-1));
-                    frame.add(player.get(i-1));
-                }
-                frame.revalidate();
+                toUpdateList();
             }
             else if(e.getSource() == updateButton) {
-                output.writeUTF("update");
-                output.flush();
-                String command = input.readUTF();
-                String[] names = command.split("\\s");
-                for(int i = 0; i < player.size(); i++) {
-                    frame.remove(player.get(i));
-                }
-                player.clear();
-                
-                for(int i = 1; i < names.length; i++) {
-                    player.add(new JRadioButton(names[i]));
-                    group.add(player.get(i-1));
-                    frame.add(player.get(i-1));
-                }
-                frame.revalidate();
+                toUpdateList();
             }
             else if(e.getSource() == playButton) {
                 for(JRadioButton i: player) {
+                    //see which radio button is selected
                     if(i.isSelected()) {
+                        //enable everthing
                         updateButton.setEnabled(false);
                         playButton.setEnabled(false);
                         for(JRadioButton j: player)
                             j.setEnabled(false);
-                        output.writeUTF("play " + i.getText());
+
+                        //get radio button syntax
+                        String tt = i.getText();
+
+                        //remove score, remain original name
+                        String[] temp = tt.split("\\(");
+                        output.writeUTF("play " + temp[0]);
                         output.flush();
-                        Client.check_or_cross = input.readUTF(); //wait opponent and take check or cross
+
+                        //wait opponent and take check or cross
+                        Client.check_or_cross = input.readUTF(); 
                         PlayGround start = new PlayGround();
-                        System.out.println("123");
                     }
                 }
             }
         } catch(Exception err) {}
+    }
+    void toUpdateList() throws Exception{
+        //tell server want to update enemy list
+        output.writeUTF("update");
+        output.flush();
+        //read update list
+        String command = input.readUTF();
+        String[] names = command.split("\\s");
+        for(int i = 0; i < player.size(); i++) {
+            frame.remove(player.get(i));
+        }
+        player.clear();
+
+        for(int i = 1; i < names.length; i++) {
+            player.add(new JRadioButton(names[i]));
+            group.add(player.get(i-1));
+            frame.add(player.get(i-1));
+        }
+        frame.revalidate();
     }
 }
